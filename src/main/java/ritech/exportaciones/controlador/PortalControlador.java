@@ -13,6 +13,7 @@ import ritech.exportaciones.dao.PedidoDAO;
 import ritech.exportaciones.dao.PortalDAO;
 import ritech.exportaciones.modelo.Pedido;
 import ritech.exportaciones.modelo.Usuario;
+import ritech.exportaciones.servicio.AvisoServicio;
 
 @Controller
 public class PortalControlador {
@@ -22,6 +23,9 @@ public class PortalControlador {
 
     @Autowired
     private PedidoDAO pedidoDAO;
+
+    @Autowired
+    private AvisoServicio avisoServicio;
 
     // ----------------------------------------------------------
     // Portal del proveedor
@@ -112,6 +116,11 @@ public class PortalControlador {
 
         String numero = portalDAO.crearSolicitud(
                 usuario.getIdCliente(), usuario.getId(), idLote);
+
+        // Al auxiliar le llega el aviso de que hay una solicitud
+        // esperando cotizacion. Antes tocaba que alguien se acordara
+        // de entrar a mirar.
+        avisoServicio.nuevaSolicitud(numero, usuario.getIdCliente(), idLote.length);
 
         flash.addFlashAttribute("mensaje",
                 "Solicitud " + numero + " enviada. RiTech S.A.S le confirmara el precio.");
@@ -204,8 +213,12 @@ public class PortalControlador {
         }
 
         if (portalDAO.aceptarCotizacion(id)) {
+
             flash.addFlashAttribute("mensaje",
                     "Precio aceptado. RiTech S.A.S procedera con el despacho.");
+
+            avisoServicio.clienteAcepto(pedidoDAO.buscarPorId(id));
+
         } else {
             flash.addFlashAttribute("error",
                     "Ese pedido ya no esta esperando respuesta.");
@@ -247,8 +260,14 @@ public class PortalControlador {
         }
 
         if (portalDAO.rechazarCotizacion(id, motivo)) {
+
             flash.addFlashAttribute("mensaje",
                     "Cotización rechazada. Los lotes volvieron al inventario disponible.");
+
+            // El motivo viaja en el aviso: de nada sirve saber que
+            // rechazaron si no se sabe por que.
+            avisoServicio.clienteRechazo(pedidoDAO.buscarPorId(id), motivo);
+
         } else {
             flash.addFlashAttribute("error",
                     "Ese pedido ya no esta esperando respuesta.");

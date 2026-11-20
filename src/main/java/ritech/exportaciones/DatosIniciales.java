@@ -45,12 +45,43 @@ public class DatosIniciales implements CommandLineRunner {
             agregarColumnaSiFalta("lote", "pagado", "BOOLEAN NOT NULL DEFAULT FALSE");
             agregarColumnaSiFalta("lote", "fecha_pago", "DATE NULL");
 
+            crearTablaAvisoSiFalta();
+
             corregirNombresDeLugar();
 
         } catch (Exception e) {
             // Si algo falla aqui, el programa debe arrancar igual.
             System.out.println("[RiTech] No se pudieron revisar los datos iniciales: "
                              + e.getMessage());
+        }
+    }
+
+    // ----------------------------------------------------------
+    // Tabla donde quedan guardados los correos que manda el sistema.
+    //
+    // CREATE TABLE IF NOT EXISTS no da error cuando la tabla ya
+    // existe, asi que esto se puede ejecutar en cada arranque.
+    // ----------------------------------------------------------
+    private void crearTablaAvisoSiFalta() {
+
+        Integer existe = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.tables " +
+                "WHERE table_schema = DATABASE() AND table_name = 'aviso'",
+                Integer.class);
+
+        jdbc.execute(
+            "CREATE TABLE IF NOT EXISTS aviso (" +
+            "  id_aviso     INT AUTO_INCREMENT PRIMARY KEY," +
+            "  momento      DATETIME     NOT NULL," +
+            "  destinatario VARCHAR(120) NOT NULL," +
+            "  asunto       VARCHAR(180) NOT NULL," +
+            "  cuerpo       TEXT         NOT NULL," +
+            "  estado       VARCHAR(20)  NOT NULL," +
+            "  detalle      VARCHAR(255) NULL" +
+            ")");
+
+        if (existe != null && existe == 0) {
+            System.out.println("[RiTech] Tabla aviso creada");
         }
     }
 

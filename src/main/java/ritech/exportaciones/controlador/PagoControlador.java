@@ -10,7 +10,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
 import ritech.exportaciones.dao.PagoDAO;
+import ritech.exportaciones.modelo.Lote;
 import ritech.exportaciones.modelo.Usuario;
+import ritech.exportaciones.servicio.AvisoServicio;
 
 /**
  * Pagos a los productores.
@@ -23,6 +25,9 @@ public class PagoControlador {
 
     @Autowired
     private PagoDAO pagoDAO;
+
+    @Autowired
+    private AvisoServicio avisoServicio;
 
     @GetMapping("/pagos")
     public String mostrar(HttpSession sesion, Model modelo) {
@@ -73,8 +78,17 @@ public class PagoControlador {
         }
 
         if (pagoDAO.registrarPago(idLote)) {
+
             flash.addFlashAttribute("mensaje",
                     "Pago del lote " + codigo + " registrado por " + usuario.getNombre());
+
+            // Al productor se le avisa cuanta plata le va a llegar.
+            // Si el correo falla, el pago igual quedo registrado.
+            Lote lote = pagoDAO.buscarLote(idLote);
+            if (lote != null) {
+                avisoServicio.pagoAlProveedor(lote);
+            }
+
         } else {
             flash.addFlashAttribute("error",
                     "El lote " + codigo + " ya estaba pagado o no tiene precio de compra");

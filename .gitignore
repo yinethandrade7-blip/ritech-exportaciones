@@ -29,3 +29,8 @@ desktop.ini
 
 # Comprimidos de las entregas
 *.zip
+
+# Cuenta de correo desde la que el sistema manda los avisos.
+# Lleva la clave de aplicacion: con ella cualquiera podria mandar
+# correos haciendose pasar por la empresa. No va al repositorio.
+src/main/resources/correo.properties

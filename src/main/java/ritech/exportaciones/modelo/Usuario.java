@@ -185,4 +185,12 @@ public class Usuario {
     public boolean puedeConsultarOrigen() {
         return esGerente() || esAuxiliar() || esCliente();
     }
+
+    public boolean puedeVerAvisos() {
+        // Los avisos contienen precios, nombres de compradores y
+        // motivos de rechazo: es informacion del negocio. La ve
+        // quien opera los pedidos y quien dirige, no el
+        // administrador de cuentas.
+        return esGerente() || esAuxiliar();
+    }
 }

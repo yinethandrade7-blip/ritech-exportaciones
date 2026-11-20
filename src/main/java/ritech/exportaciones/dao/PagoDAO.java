@@ -164,4 +164,14 @@ public class PagoDAO {
                 "SELECT codigo FROM lote WHERE id_lote = ?", String.class, idLote);
         return encontrados.isEmpty() ? null : encontrados.get(0);
     }
+
+    /**
+     * Un lote con todos sus datos: hace falta para armar el correo
+     * que se le manda al productor cuando se le autoriza el pago.
+     */
+    public Lote buscarLote(int idLote) {
+        List<Lote> encontrados = jdbc.query(
+                SELECT_LOTE + "WHERE l.id_lote = ?", this::convertirLote, idLote);
+        return encontrados.isEmpty() ? null : encontrados.get(0);
+    }
 }

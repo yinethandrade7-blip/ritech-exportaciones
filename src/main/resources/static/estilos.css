@@ -370,6 +370,11 @@ td .mono, td .codigo { white-space: nowrap; }
 .estado-DESPACHADO { background: var(--grano); border-color: var(--grano); color: var(--papel); }
 .estado-RECHAZADO  { background: var(--ladrillo-fondo); border-color: #DFC6BF; color: var(--ladrillo); }
 
+/* Estados de los avisos por correo */
+.estado-ENVIADO    { background: var(--hoja-fondo);     border-color: #C6D6C2; color: var(--hoja); }
+.estado-PENDIENTE  { background: var(--miel-fondo);     border-color: #E6D2AA; color: var(--miel); }
+.estado-ERROR      { background: var(--ladrillo-fondo); border-color: #DFC6BF; color: var(--ladrillo); }
+
 /* ------------------------------------------------------------
    Avisos
    ------------------------------------------------------------ */

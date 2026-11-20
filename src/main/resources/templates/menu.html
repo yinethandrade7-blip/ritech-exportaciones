@@ -106,6 +106,12 @@
                 <span class="que">Ventas, origen y riesgo de incumplimiento</span>
             </a>
         </li>
+        <li th:if="${usuario.puedeVerAvisos()}">
+            <a th:href="@{/avisos}">
+                Avisos
+                <span class="que">Los correos que el sistema ya mandó</span>
+            </a>
+        </li>
 
         <li th:if="${usuario.esProveedor()}">
             <a th:href="@{/mis-lotes}">

@@ -17,6 +17,7 @@ import ritech.exportaciones.dao.PedidoDAO;
 import ritech.exportaciones.modelo.Pedido;
 import ritech.exportaciones.modelo.TasaCambio;
 import ritech.exportaciones.modelo.Usuario;
+import ritech.exportaciones.servicio.AvisoServicio;
 import ritech.exportaciones.servicio.TasaCambioServicio;
 
 @Controller
@@ -30,6 +31,9 @@ public class PedidoControlador {
 
     @Autowired
     private TasaCambioServicio tasaCambioServicio;
+
+    @Autowired
+    private AvisoServicio avisoServicio;
 
     /**
      * Un pedido solo se puede modificar mientras el cliente no lo haya visto.
@@ -330,6 +334,10 @@ public class PedidoControlador {
 
         pedidoDAO.enviarCotizacion(idPedido, tasa);
 
+        // El pedido se vuelve a leer: ya trae el total recalculado,
+        // que es la cifra que va en el correo.
+        avisoServicio.cotizacionEnviada(pedidoDAO.buscarPorId(idPedido));
+
         flash.addFlashAttribute("mensaje",
                 "Cotización del pedido " + pedido.getNumero() + " enviada al cliente. "
                 + "Queda a la espera de que el cliente acepte o rechace el precio.");
@@ -368,6 +376,9 @@ public class PedidoControlador {
         }
 
         if (pedidoDAO.enviarBorrador(idPedido)) {
+
+            avisoServicio.cotizacionEnviada(pedidoDAO.buscarPorId(idPedido));
+
             flash.addFlashAttribute("mensaje",
                     "Cotización del pedido " + pedido.getNumero() + " enviada al cliente. "
                     + "A partir de ahora el pedido no se puede modificar.");

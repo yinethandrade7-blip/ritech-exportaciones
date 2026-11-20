@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Avisos enviados - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span th:text="${usuario.rol}"></span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <a class="volver" th:href="@{/menu}">Volver al menú</a>
+
+    <h1>Avisos enviados</h1>
+    <p class="entrada">
+        Cada vez que pasa algo que a alguien le interesa —una solicitud nueva, una
+        cotización, una respuesta del cliente, un pago autorizado— el sistema manda un
+        correo y deja constancia aquí. El aviso se guarda antes de intentar mandarlo,
+        así que si el correo falla queda el registro y el motivo.
+    </p>
+
+    <div class="cifras">
+        <div class="cifra destacada">
+            <p class="rotulo">Enviados</p>
+            <div class="dato" th:text="${enviados}"></div>
+        </div>
+        <div class="cifra alerta" th:if="${pendientes > 0}">
+            <p class="rotulo">Pendientes</p>
+            <div class="dato" th:text="${pendientes}"></div>
+        </div>
+        <div class="cifra" th:if="${fallidos > 0}">
+            <p class="rotulo">Con error</p>
+            <div class="dato" th:text="${fallidos}"></div>
+        </div>
+    </div>
+
+    <div th:if="${configurado}" class="aviso aviso-ok">
+        Los correos salen desde <b th:text="${cuenta}"></b>.
+    </div>
+
+    <div th:unless="${configurado}" class="sello sello-espera">
+        <p class="sello-titulo">Cuenta de correo sin configurar</p>
+        <p>
+            El sistema está registrando todos los avisos, pero todavía no los puede
+            mandar porque falta la cuenta desde la cual se envían. Se configura en el
+            archivo <span class="mono">correo.properties</span>.
+        </p>
+        <p>
+            Ese archivo no se sube al repositorio a propósito: la clave de aplicación
+            permite mandar correos en nombre de la empresa, y en un repositorio público
+            quedaría al alcance de cualquiera.
+        </p>
+    </div>
+
+    <h2>Últimos avisos</h2>
+
+    <p th:if="${#lists.isEmpty(avisos)}" class="ayuda">
+        Todavía no se ha generado ningún aviso. Entre como cliente y solicite un lote,
+        o mande una cotización, para ver el primero.
+    </p>
+
+    <div class="tabla" th:unless="${#lists.isEmpty(avisos)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Para</th>
+                <th>Asunto</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${avisos}">
+                <td class="mono" th:text="${a.momento}"></td>
+                <td th:text="${a.destinatario}"></td>
+                <td>
+                    <span th:text="${a.asunto}"></span>
+                    <p class="ayuda" th:if="${a.detalle}" th:text="${a.detalle}"></p>
+                </td>
+                <td>
+                    <span class="estado"
+                          th:classappend="'estado-' + ${a.estado}"
+                          th:text="${a.estado}"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
