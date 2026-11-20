@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inventario disponible - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <a th:href="@{/mis-pedidos}">Mis pedidos</a>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <h1>Café y cacao disponible</h1>
+    <p class="entrada">
+        Estos son los lotes que RiTech S.A.S tiene disponibles en este momento, cada uno
+        con la finca y las coordenadas de donde salió. Marque los que le interesen y envíe
+        la solicitud: RiTech le enviará el precio por kilogramo para que usted lo apruebe.
+    </p>
+
+    <p th:if="${mensaje}" th:text="${mensaje}" class="aviso aviso-ok"></p>
+    <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+
+    <div th:if="${sinVinculo}">
+        <p class="aviso aviso-info">
+            Su cuenta no está vinculada a ninguna empresa, por lo que no puede enviar
+            solicitudes. Comuníquese con el administrador de RiTech S.A.S.
+        </p>
+    </div>
+
+    <form method="post" th:action="@{/mi-inventario/solicitar}">
+
+        <div class="tabla">
+            <table>
+                <thead>
+                <tr>
+                    <th>Elegir</th>
+                    <th>Lote</th>
+                    <th>Producto</th>
+                    <th>Finca de origen</th>
+                    <th class="num">Peso (kg)</th>
+                    <th>Cosecha</th>
+                    <th>Coordenadas</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${lotes}">
+                    <td>
+                        <input type="checkbox" name="idLote" th:value="${l.idLote}"
+                               th:disabled="${sinVinculo}">
+                    </td>
+                    <td class="codigo" th:text="${l.codigo}"></td>
+                    <td th:text="${l.variedad}"></td>
+                    <td th:text="${l.finca} + ' (' + ${l.lugar} + ')'"></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(l.pesoKg, 1, 'POINT', 2, 'COMMA')}"></td>
+                    <td th:text="${l.fechaCosecha}"></td>
+
+                    <td>
+                        <span class="mono" th:if="${l.tieneCoordenadas()}"
+                              th:text="${l.latitud} + ' , ' + ${l.longitud}"></span>
+                        <span class="vacio" th:unless="${l.tieneCoordenadas()}">No disponible</span>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(lotes)}">
+                    <td colspan="7" class="vacio">
+                        No hay lotes disponibles en este momento.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="acciones" th:unless="${#lists.isEmpty(lotes)}">
+            <button type="submit" th:disabled="${sinVinculo}">
+                Solicitar los lotes marcados
+            </button>
+            <span class="ayuda">
+                Los lotes marcados quedan apartados para su empresa mientras RiTech
+                prepara la cotización.
+            </span>
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>

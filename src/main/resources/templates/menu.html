@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Menú - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span th:text="${usuario.rol}"></span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <h1>Menú principal</h1>
+
+    <!-- Que alcance tiene cada perfil -->
+
+    <p class="perfil" th:if="${usuario.esAdministrador()}">
+        Su perfil administra las cuentas de usuario y los datos de proveedores y clientes.
+        No tiene acceso a pedidos, precios ni reportes del negocio.
+    </p>
+
+    <p class="perfil" th:if="${usuario.esGerente()}">
+        Su perfil consulta la información del negocio, autoriza el despacho de los pedidos
+        ante la Unión Europea y registra los pagos a los productores.
+    </p>
+
+    <p class="perfil" th:if="${usuario.esAuxiliar()}">
+        Su perfil registra los lotes y arma los pedidos de exportación.
+        El despacho lo autoriza la gerencia.
+    </p>
+
+    <p class="perfil" th:if="${usuario.esProveedor()}">
+        Aquí puede seguir sus lotes: a quién se vendieron, a qué país fueron
+        y en que va el pago.
+    </p>
+
+    <p class="perfil" th:if="${usuario.esCliente()}">
+        Aquí puede ver el café y el cacao disponibles con su origen verificado,
+        solicitar lotes y responder las cotizaciones de RiTech S.A.S.
+    </p>
+
+    <!--
+        Cada opcion se muestra según un permiso, no según el nombre del rol.
+        Ocultar un enlace no protege nada: la protección de verdad está en
+        el controlador. Esto es solo para no mostrarle a la persona puertas
+        que no va a poder abrir.
+    -->
+
+    <ul class="opciones">
+        <li th:if="${usuario.puedeVerMaestros()}">
+            <a th:href="@{/proveedores}">
+                Proveedores
+                <span class="que">Caficultores, cacaoteros y sus fincas</span>
+            </a>
+        </li>
+        <li th:if="${usuario.puedeVerMaestros()}">
+            <a th:href="@{/clientes}">
+                Clientes
+                <span class="que">Empresas importadoras de la Unión Europea</span>
+            </a>
+        </li>
+        <li th:if="${usuario.puedeVerLotes()}">
+            <a th:href="@{/lotes}">
+                Lotes
+                <span class="que">Café y cacao recibido de los productores</span>
+            </a>
+        </li>
+        <li th:if="${usuario.puedeVerPedidos()}">
+            <a th:href="@{/pedidos}">
+                Pedidos
+                <span class="que">Exportaciones y su verificación de origen</span>
+            </a>
+        </li>
+        <li th:if="${usuario.puedeConsultarOrigen()}">
+            <a th:href="@{/origen}">
+                Consultar origen
+                <span class="que">De que finca salió un lote</span>
+            </a>
+        </li>
+        <li th:if="${usuario.puedeAdministrarUsuarios()}">
+            <a th:href="@{/usuarios}">
+                Usuarios
+                <span class="que">Cuentas de acceso y sus roles</span>
+            </a>
+        </li>
+        <li th:if="${usuario.puedeAutorizarPagos()}">
+            <a th:href="@{/pagos}">
+                Pagos a productores
+                <span class="que">Lo que RiTech le debe a cada caficultor</span>
+            </a>
+        </li>
+        <li th:if="${usuario.puedeVerReportes()}">
+            <a th:href="@{/reportes}">
+                Reportes
+                <span class="que">Ventas, origen y riesgo de incumplimiento</span>
+            </a>
+        </li>
+
+        <li th:if="${usuario.esProveedor()}">
+            <a th:href="@{/mis-lotes}">
+                Mis lotes
+                <span class="que">Entregas, destino y estado del pago</span>
+            </a>
+        </li>
+
+        <li th:if="${usuario.esCliente()}">
+            <a th:href="@{/mi-inventario}">
+                Inventario disponible
+                <span class="que">Lotes que puede solicitar</span>
+            </a>
+        </li>
+        <li th:if="${usuario.esCliente()}">
+            <a th:href="@{/mis-pedidos}">
+                Mis pedidos
+                <span class="que">Cotizaciones por responder y envios</span>
+            </a>
+        </li>
+    </ul>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trazabilidad del pedido - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <a th:href="@{/mis-pedidos}">Mis pedidos</a>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <a class="volver" th:href="@{/mis-pedidos}">Volver a mis pedidos</a>
+
+    <h1>Pedido <span class="codigo" th:text="${pedido.numero}"></span></h1>
+
+    <p th:if="${mensaje}" th:text="${mensaje}" class="aviso aviso-ok"></p>
+    <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+
+    <!-- ============================================================= -->
+    <!-- Cotización pendiente de respuesta                             -->
+    <!-- ============================================================= -->
+
+    <div th:if="${pedido.esCotizacion()}">
+
+        <div class="sello sello-espera">
+            <p class="sello-titulo">RiTech le envió el precio de este pedido</p>
+            <p>
+                Revise el precio por kilogramo de cada lote. Si está de acuerdo, acepte y
+                el pedido pasa a despacho. Si no, puede rechazarlo indicando el motivo, y
+                los lotes vuelven al inventario disponible.
+            </p>
+        </div>
+
+        <div class="tabla">
+            <table>
+                <thead>
+                <tr>
+                    <th>Lote</th>
+                    <th>Producto</th>
+                    <th class="num">Peso (kg)</th>
+                    <th class="num">Precio por kg (<span th:text="${pedido.moneda}"></span>)</th>
+                    <th class="num">Subtotal</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${lotes}">
+                    <td class="codigo" th:text="${l.codigo}"></td>
+                    <td th:text="${l.variedad}"></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(l.pesoKg, 1, 'POINT', 2, 'COMMA')}"></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(l.precioUnitario, 1, 'POINT', 2, 'COMMA')}"></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(l.totalParcial, 1, 'POINT', 2, 'COMMA')}"></td>
+                </tr>
+                <tr>
+                    <th colspan="4">Total a pagar</th>
+                    <th class="num total"
+                        th:text="${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')}
+                               + ' ' + ${pedido.moneda}"></th>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="ficha">
+            <h3>Aceptar el precio</h3>
+            <form method="post" th:action="@{/mi-pedido/aceptar}">
+                <input type="hidden" name="id" th:value="${pedido.id}">
+                <button type="submit">Acepto el precio y confirmo el pedido</button>
+            </form>
+        </div>
+
+        <div class="ficha">
+            <h3>Rechazar el precio</h3>
+            <form method="post" th:action="@{/mi-pedido/rechazar}">
+                <input type="hidden" name="id" th:value="${pedido.id}">
+
+                <div class="campos">
+                    <div class="campo ancho">
+                        <label for="motivo">Motivo</label>
+                        <input type="text" id="motivo" name="motivo"
+                               placeholder="El precio por kilo está por encima del mercado">
+                    </div>
+                </div>
+
+                <button type="submit" class="peligro">No acepto el precio</button>
+            </form>
+        </div>
+
+    </div>
+
+    <div class="sello" th:if="${pedido.estado == 'SOLICITADO'}">
+        <p class="sello-titulo">Solicitud recibida</p>
+        <p>
+            RiTech S.A.S le enviará el precio por kilogramo y la tasa de cambio para que
+            usted los apruebe antes del despacho.
+        </p>
+    </div>
+
+    <div class="sello sello-ok" th:if="${pedido.estado == 'CREADO'}">
+        <p class="sello-titulo">Precio aceptado</p>
+        <p>
+            Queda pendiente la autorización de despacho por parte de la gerencia de
+            RiTech S.A.S.
+        </p>
+    </div>
+
+    <div class="sello sello-bloqueo" th:if="${pedido.estado == 'RECHAZADO'}">
+        <p class="sello-titulo">Usted rechazó esta cotización</p>
+        <p>Los lotes volvieron al inventario disponible.</p>
+        <p class="norma" th:if="${pedido.observacionCliente != null}"
+           th:text="'Motivo: ' + ${pedido.observacionCliente}"></p>
+    </div>
+
+    <h2>Datos del envío</h2>
+
+    <div class="tabla">
+        <table class="datos">
+            <tbody>
+            <tr>
+                <th>Exportador</th>
+                <td>RiTech S.A.S - Colombia</td>
+            </tr>
+            <tr>
+                <th>Importador</th>
+                <td th:text="${pedido.cliente}"></td>
+            </tr>
+            <tr>
+                <th>Destino</th>
+                <td th:text="${pedido.paisDestino}"></td>
+            </tr>
+            <tr>
+                <th>Fecha</th>
+                <td th:text="${pedido.fechaPedido}"></td>
+            </tr>
+            <tr>
+                <th>Total</th>
+                <td class="vacio" th:if="${pedido.estado == 'SOLICITADO'}">Pendiente de cotización</td>
+                <td class="mono total" th:unless="${pedido.estado == 'SOLICITADO'}"
+                    th:text="${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')} + ' ' + ${pedido.moneda}"></td>
+            </tr>
+            <tr>
+                <th>Estado</th>
+                <td>
+                    <span class="estado" th:classappend="'estado-' + ${pedido.estado}"
+                          th:text="${pedido.estado}"></span>
+                </td>
+            </tr>
+            <tr th:if="${pedido.observacionCliente != null}">
+                <th>Motivo del rechazo</th>
+                <td th:text="${pedido.observacionCliente}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Origen de cada lote</h2>
+
+    <p class="entrada">
+        Información de trazabilidad requerida por el Reglamento (UE) 2023/1115 sobre
+        productos libres de deforestación.
+    </p>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Lote</th>
+                <th>Producto</th>
+                <th>Productor</th>
+                <th>Finca</th>
+                <th>Municipio</th>
+                <th class="num">Peso (kg)</th>
+                <th class="num">Latitud</th>
+                <th class="num">Longitud</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="l : ${lotes}">
+                <td class="codigo" th:text="${l.codigo}"></td>
+                <td th:text="${l.variedad}"></td>
+                <td th:text="${l.proveedor}"></td>
+                <td th:text="${l.finca}"></td>
+                <td th:text="${l.lugar}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(l.pesoKg, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td class="num" th:text="${l.latitud} ?: 'No disponible'"></td>
+                <td class="num" th:text="${l.longitud} ?: 'No disponible'"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="ayuda">
+        RiTech S.A.S certifica que los lotes relacionados provienen de las parcelas
+        georreferenciadas indicadas en esta tabla.
+    </p>
+
+    <h2>Ubicación de las parcelas de origen</h2>
+
+    <div id="mapa" class="mapa"></div>
+
+    <script>
+        var fincas = [];
+    </script>
+
+    <th:block th:each="l : ${lotes}">
+        <script th:if="${l.tieneCoordenadas()}" th:inline="javascript">
+            fincas.push({
+                lat:   [[${l.latitud}]],
+                lon:   [[${l.longitud}]],
+                texto: [[${l.codigo} + ' | ' + ${l.finca} + ' | ' + ${l.proveedor}]]
+            });
+        </script>
+    </th:block>
+
+    <script>
+        if (fincas.length > 0) {
+
+            var mapa = L.map('mapa').setView([fincas[0].lat, fincas[0].lon], 11);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap',
+                maxZoom: 18
+            }).addTo(mapa);
+
+            var puntos = [];
+
+            fincas.forEach(function (f) {
+                L.marker([f.lat, f.lon]).addTo(mapa).bindPopup(f.texto);
+                puntos.push([f.lat, f.lon]);
+            });
+
+            if (puntos.length > 1) {
+                mapa.fitBounds(puntos, { padding: [40, 40] });
+            }
+
+        } else {
+            document.getElementById('mapa').innerHTML =
+                '<p>No hay coordenadas registradas para mostrar en el mapa.</p>';
+        }
+    </script>
+
+</div>
+
+</body>
+</html>

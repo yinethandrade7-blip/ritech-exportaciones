@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pedidos - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span th:text="${usuario.rol}"></span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <a class="volver" th:href="@{/menu}">Volver al menú</a>
+
+    <h1>Pedidos de exportación</h1>
+    <p class="entrada">
+        Un pedido agrupa los lotes que salen en un mismo envío hacia un cliente europeo.
+        Ninguno puede despacharse sin que todos sus lotes tengan el origen verificado.
+    </p>
+
+    <p th:if="${mensaje}" th:text="${mensaje}" class="aviso aviso-ok"></p>
+    <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+
+    <!-- Crear pedidos es operacion comercial: solo el auxiliar -->
+    <div class="ficha" th:if="${usuario.puedeOperarPedidos()}">
+
+        <h2>Crear pedido nuevo</h2>
+
+        <form method="post" th:action="@{/pedidos/crear}">
+
+            <div class="campos">
+
+                <div class="campo">
+                    <label for="idCliente">Cliente</label>
+                    <select id="idCliente" name="idCliente">
+                        <option value="0">Seleccione</option>
+                        <option th:each="c : ${clientes}"
+                                th:value="${c.id}"
+                                th:text="${c.nombreEmpresa} + ' (' + ${c.pais} + ')'"></option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="idPaisDestino">País de destino</label>
+                    <select id="idPaisDestino" name="idPaisDestino">
+                        <option value="0">Seleccione</option>
+                        <option th:each="p : ${paises}"
+                                th:value="${p.id}"
+                                th:text="${p.nombre}"></option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="selectorMoneda">Moneda de la negociación</label>
+                    <select id="selectorMoneda" name="idMoneda" onchange="ponerTasaDelDia()">
+                        <option value="0">Seleccione</option>
+                        <option th:each="m : ${monedas}"
+                                th:value="${m.id}"
+                                th:attr="data-codigo=${m.codigo}"
+                                th:text="${m.texto}"></option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="campoTasa">Tasa de cambio, en pesos por unidad</label>
+                    <input type="text" id="campoTasa" name="tasaCambio" placeholder="4350.00">
+                </div>
+
+                <div class="campo">
+                    <label for="fechaPedido">Fecha del pedido</label>
+                    <input type="date" id="fechaPedido" name="fechaPedido" th:value="${hoy}">
+                </div>
+
+            </div>
+
+            <!-- De donde salió la tasa -->
+            <p class="ayuda" th:if="${tasa.disponible}">
+                Al escoger la moneda, el sistema pone la tasa del día tomada de la
+                <b th:text="${tasa.fuente}"></b>, con fecha <b th:text="${tasa.fecha}"></b>.
+                Si la negociación se pacto con otra tasa, se puede corregir a mano.
+            </p>
+
+            <p class="aviso aviso-info" th:unless="${tasa.disponible}" th:text="${tasa.error}"></p>
+
+            <button type="submit">Crear pedido</button>
+        </form>
+
+        <script th:inline="javascript">
+            // Cuantos pesos vale una unidad de cada moneda, según la
+            // consulta que hizo el servidor cuando cargo esta página
+            var tasasDelDia = {
+                USD: [[${tasa.copPorDolar}]],
+                EUR: [[${tasa.copPorEuro}]],
+                COP: 1
+            };
+
+            function ponerTasaDelDia() {
+                var selector = document.getElementById('selectorMoneda');
+                var opcion = selector.options[selector.selectedIndex];
+                var codigo = opcion.getAttribute('data-codigo');
+                var valor = tasasDelDia[codigo];
+
+                if (valor) {
+                    document.getElementById('campoTasa').value = valor.toFixed(2);
+                }
+            }
+        </script>
+
+    </div>
+
+    <p class="aviso" th:if="${usuario.puedeDespachar()}">
+        Desde aquí puede abrir cada pedido y autorizar su despacho. El sistema no permitirá
+        despachar ningún pedido cuyos lotes no tengan el origen verificado.
+    </p>
+
+    <h2>Pedidos registrados</h2>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Destino</th>
+                <th>Fecha</th>
+                <th>Moneda</th>
+                <th class="num">Tasa</th>
+                <th class="num">Total</th>
+                <th>Estado</th>
+                <th>Registro</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${pedidos}">
+                <td class="codigo" th:text="${p.numero}"></td>
+                <td th:text="${p.cliente}"></td>
+                <td th:text="${p.paisDestino}"></td>
+                <td th:text="${p.fechaPedido}"></td>
+                <td class="mono" th:text="${p.moneda}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(p.tasaCambio, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td class="num total" th:text="${#numbers.formatDecimal(p.total, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td>
+                    <span class="estado" th:classappend="'estado-' + ${p.estado}"
+                          th:text="${p.estado}"></span>
+                </td>
+                <td th:text="${p.usuario}"></td>
+                <td>
+                    <a class="boton chico suave"
+                       th:href="@{/pedidos/detalle(id=${p.id})}">Abrir</a>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(pedidos)}">
+                <td colspan="10" class="vacio">Todavía no hay pedidos registrados.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

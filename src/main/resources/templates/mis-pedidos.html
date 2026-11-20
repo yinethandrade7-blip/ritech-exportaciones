@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mis pedidos - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <a th:href="@{/mi-inventario}">Inventario disponible</a>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <h1>Mis pedidos</h1>
+
+    <p th:if="${mensaje}" th:text="${mensaje}" class="aviso aviso-ok"></p>
+    <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+
+    <div th:if="${sinVinculo}">
+        <p class="aviso aviso-info">
+            Su cuenta no está vinculada a ninguna empresa. Comuníquese con el
+            administrador de RiTech S.A.S.
+        </p>
+    </div>
+
+    <div th:unless="${sinVinculo}">
+
+        <p class="entrada">
+            Cuando RiTech le envíe el precio de una solicitud, el pedido aparecerá aquí
+            esperando su respuesta.
+        </p>
+
+        <div class="tabla">
+            <table>
+                <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Fecha</th>
+                    <th>Destino</th>
+                    <th class="num">Total</th>
+                    <th>Estado</th>
+                    <th>Qué sigue</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${pedidos}">
+                    <td class="codigo" th:text="${p.numero}"></td>
+                    <td th:text="${p.fechaPedido}"></td>
+                    <td th:text="${p.paisDestino}"></td>
+
+                    <td class="num vacio" th:if="${p.estado == 'SOLICITADO'}">Por definir</td>
+                    <td class="num total" th:unless="${p.estado == 'SOLICITADO'}"
+                        th:text="${#numbers.formatDecimal(p.total, 1, 'POINT', 2, 'COMMA')} + ' ' + ${p.moneda}"></td>
+
+                    <td>
+                        <span class="estado" th:classappend="'estado-' + ${p.estado}"
+                              th:text="${p.estado}"></span>
+                    </td>
+                    <td>
+                        <b th:if="${p.estado == 'COTIZADO'}">Esperando su respuesta</b>
+                        <span th:if="${p.estado == 'SOLICITADO'}">RiTech está preparando el precio</span>
+                        <span th:if="${p.estado == 'CREADO'}">Precio aceptado, pendiente de despacho</span>
+                        <span th:if="${p.estado == 'DESPACHADO'}">Despachado</span>
+                        <span th:if="${p.estado == 'RECHAZADO'}">Usted rechazo el precio</span>
+                    </td>
+                    <td>
+                        <a class="boton chico suave"
+                           th:href="@{/mi-pedido(id=${p.id})}">Abrir</a>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(pedidos)}">
+                    <td colspan="7" class="vacio">
+                        Su empresa todavía no tiene pedidos registrados.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Consultar origen - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span th:text="${usuario.rol}"></span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor medio">
+
+    <a class="volver" th:href="@{/menu}">Volver al menú</a>
+
+    <h1>Consultar origen del lote</h1>
+    <p class="entrada">
+        Escriba el código de un lote para ver de qué finca salió y en qué coordenadas
+        queda esa parcela.
+    </p>
+
+    <div class="ficha">
+        <form method="get" action="/origen" class="acciones">
+            <input type="text" name="codigo" th:value="${codigo}"
+                   placeholder="LOTE-0001" style="max-width: 240px">
+            <button type="submit">Consultar</button>
+        </form>
+    </div>
+
+    <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+    <p th:if="${advertencia}" th:text="${advertencia}" class="aviso aviso-info"></p>
+
+    <div th:if="${lote}">
+
+        <h2>Trazabilidad del lote <span class="codigo" th:text="${lote.codigo}"></span></h2>
+
+        <div class="tabla">
+            <table class="datos">
+                <tbody>
+                <tr>
+                    <th>Producto</th>
+                    <td th:text="${lote.producto} + ' - ' + ${lote.variedad}"></td>
+                </tr>
+                <tr>
+                    <th>Peso</th>
+                    <td class="mono" th:text="${lote.pesoKg} + ' kg'"></td>
+                </tr>
+                <tr>
+                    <th>Fecha de cosecha</th>
+                    <td th:text="${lote.fechaCosecha}"></td>
+                </tr>
+                <tr>
+                    <th>Estado</th>
+                    <td>
+                        <span class="estado" th:classappend="'estado-' + ${lote.estado}"
+                              th:text="${lote.estado}"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Productor</th>
+                    <td th:text="${lote.proveedor}"></td>
+                </tr>
+                <tr>
+                    <th>Finca</th>
+                    <td th:text="${lote.finca}"></td>
+                </tr>
+                <tr>
+                    <th>Lugar</th>
+                    <td th:text="${lote.lugar}"></td>
+                </tr>
+                <tr>
+                    <th>Latitud</th>
+                    <td class="mono" th:text="${lote.latitud}"></td>
+                </tr>
+                <tr>
+                    <th>Longitud</th>
+                    <td class="mono" th:text="${lote.longitud}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="aviso aviso-ok">
+            Origen verificado conforme al Reglamento (UE) 2023/1115.
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>

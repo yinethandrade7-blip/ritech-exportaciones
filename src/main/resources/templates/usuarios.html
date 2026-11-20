@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Usuarios - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span th:text="${usuario.rol}"></span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <a class="volver" th:href="@{/menu}">Volver al menú</a>
+
+    <h1>Usuarios</h1>
+    <p class="entrada">
+        Cada cuenta tiene un rol, y el rol decide que puede hacer esa persona dentro del
+        sistema. Las cuentas de proveedor y de cliente ademas quedan amarradas a su
+        empresa, para que cada quien vea unicamente lo suyo.
+    </p>
+
+    <p th:if="${mensaje}" th:text="${mensaje}" class="aviso aviso-ok"></p>
+    <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+
+    <div class="ficha">
+
+        <h2>Crear usuario nuevo</h2>
+
+        <form method="post" th:action="@{/usuarios/crear}">
+
+            <div class="campos">
+
+                <div class="campo ancho">
+                    <label for="nombre">Nombre completo</label>
+                    <input type="text" id="nombre" name="nombre">
+                </div>
+
+                <div class="campo">
+                    <label for="correoUsuario">Correo</label>
+                    <input type="text" id="correoUsuario" name="correo"
+                           autocomplete="off">
+                </div>
+
+                <div class="campo">
+                    <label for="clave">Contraseña</label>
+                    <input type="password" id="clave" name="clave"
+                           autocomplete="new-password">
+                </div>
+
+                <div class="campo">
+                    <label for="selectorRol">Rol</label>
+                    <select name="idRol" id="selectorRol" onchange="mostrarVinculo()">
+                        <option value="0">Seleccione</option>
+                        <option th:each="r : ${roles}"
+                                th:value="${r.id}"
+                                th:text="${r.nombre}"></option>
+                    </select>
+                </div>
+
+                <!-- Solo se muestra si el rol es PROVEEDOR -->
+                <div class="campo" id="bloqueProveedor" style="display:none">
+                    <label for="idProveedor">A cuál proveedor pertenece</label>
+                    <select name="idProveedor" id="idProveedor">
+                        <option value="0">Seleccione</option>
+                        <option th:each="p : ${proveedores}"
+                                th:value="${p.id}"
+                                th:text="${p.nombre}"></option>
+                    </select>
+                </div>
+
+                <!-- Solo se muestra si el rol es CLIENTE -->
+                <div class="campo" id="bloqueCliente" style="display:none">
+                    <label for="idCliente">A cuál empresa pertenece</label>
+                    <select name="idCliente" id="idCliente">
+                        <option value="0">Seleccione</option>
+                        <option th:each="c : ${clientes}"
+                                th:value="${c.id}"
+                                th:text="${c.nombreEmpresa}"></option>
+                    </select>
+                </div>
+
+            </div>
+
+            <button type="submit">Crear usuario</button>
+        </form>
+
+    </div>
+
+    <h2>Usuarios registrados</h2>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Vinculado a</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="u : ${usuarios}">
+                <td th:text="${u.nombre}"></td>
+                <td class="mono" th:text="${u.correo}"></td>
+                <td th:text="${u.rol}"></td>
+                <td th:text="${u.vinculo} ?: '-'"></td>
+                <td>
+                    <span class="estado"
+                          th:classappend="${u.activo} ? 'estado-DISPONIBLE' : 'estado-RECHAZADO'"
+                          th:text="${u.activo} ? 'Activo' : 'Inactivo'"></span>
+                </td>
+                <td>
+                    <span class="vacio" th:if="${u.id == usuario.id}">Es usted</span>
+
+                    <form method="post" th:action="@{/usuarios/estado}"
+                          th:unless="${u.id == usuario.id}">
+                        <input type="hidden" name="id" th:value="${u.id}">
+                        <input type="hidden" name="activo" th:value="${!u.activo}">
+                        <button type="submit" class="chico suave"
+                                th:text="${u.activo} ? 'Desactivar' : 'Activar'"></button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    function mostrarVinculo() {
+        var selector = document.getElementById("selectorRol");
+        var texto = selector.options[selector.selectedIndex].text;
+
+        document.getElementById("bloqueProveedor").style.display =
+            (texto === "PROVEEDOR") ? "flex" : "none";
+
+        document.getElementById("bloqueCliente").style.display =
+            (texto === "CLIENTE") ? "flex" : "none";
+    }
+</script>
+
+</body>
+</html>

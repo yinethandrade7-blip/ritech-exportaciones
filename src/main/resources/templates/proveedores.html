@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Proveedores - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span th:text="${usuario.rol}"></span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <a class="volver" th:href="@{/menu}">Volver al menú</a>
+
+    <h1>Proveedores</h1>
+    <p class="entrada">
+        Caficultores y cacaoteros, con la finca de donde sale su producto. Las coordenadas
+        de la finca son las que después permiten o bloquean una exportación.
+    </p>
+
+    <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+    <p th:if="${mensaje}" th:text="${mensaje}" class="aviso aviso-ok"></p>
+
+    <!-- Crear y editar proveedores es administración de datos maestros -->
+    <div class="ficha" th:if="${usuario.puedeEditarMaestros()}">
+
+        <h2 th:text="${proveedorEditar} ? 'Editar proveedor' : 'Registrar proveedor'"></h2>
+
+        <form method="post" action="/proveedores">
+
+            <input type="hidden" name="id" th:value="${proveedorEditar?.id}">
+
+            <div class="campos">
+
+                <div class="campo">
+                    <label for="documento">Documento</label>
+                    <input type="text" id="documento" name="documento"
+                           th:value="${proveedorEditar?.documento}">
+                </div>
+
+                <div class="campo">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre"
+                           th:value="${proveedorEditar?.nombre}">
+                </div>
+
+                <div class="campo">
+                    <label for="telefono">Teléfono</label>
+                    <input type="text" id="telefono" name="telefono"
+                           th:value="${proveedorEditar?.telefono}">
+                </div>
+
+                <div class="campo">
+                    <label for="correo">Correo</label>
+                    <input type="text" id="correo" name="correo"
+                           th:value="${proveedorEditar?.correo}">
+                </div>
+
+                <div class="campo">
+                    <label for="nombreFinca">Nombre de la finca</label>
+                    <input type="text" id="nombreFinca" name="nombreFinca"
+                           th:value="${proveedorEditar?.nombreFinca}">
+                </div>
+
+                <div class="campo">
+                    <label for="lugar">Lugar</label>
+                    <input type="text" id="lugar" name="lugar"
+                           th:value="${proveedorEditar?.lugar}"
+                           placeholder="Consaca, Nariño">
+                </div>
+
+                <div class="campo">
+                    <label for="latitud">Latitud</label>
+                    <input type="text" id="latitud" name="latitud"
+                           th:value="${proveedorEditar?.latitud}"
+                           placeholder="1.214500">
+                </div>
+
+                <div class="campo">
+                    <label for="longitud">Longitud</label>
+                    <input type="text" id="longitud" name="longitud"
+                           th:value="${proveedorEditar?.longitud}"
+                           placeholder="-77.278400">
+                </div>
+
+            </div>
+
+            <div class="acciones">
+                <button type="submit"
+                        th:text="${proveedorEditar} ? 'Actualizar' : 'Guardar'"></button>
+                <a th:if="${proveedorEditar}" class="boton chico" href="/proveedores">Cancelar</a>
+            </div>
+
+        </form>
+
+    </div>
+
+    <p th:unless="${usuario.puedeEditarMaestros()}" class="aviso">
+        Esta pantalla es de consulta. El registro de proveedores lo hace el administrador.
+    </p>
+
+    <h2>Proveedores registrados</h2>
+
+    <div class="ficha">
+        <form method="get" action="/proveedores" class="acciones">
+            <input type="text" name="buscar" th:value="${buscar}"
+                   placeholder="Nombre o documento" style="max-width: 280px">
+            <button type="submit" class="suave">Buscar</button>
+        </form>
+    </div>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Documento</th>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Finca</th>
+                <th>Lugar</th>
+                <th class="num">Latitud</th>
+                <th class="num">Longitud</th>
+                <th th:if="${usuario.puedeEditarMaestros()}">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${proveedores}">
+                <td class="mono" th:text="${p.documento}"></td>
+                <td th:text="${p.nombre}"></td>
+                <td th:text="${p.telefono}"></td>
+                <td th:text="${p.nombreFinca}"></td>
+                <td th:text="${p.lugar}"></td>
+                <td class="num" th:text="${p.latitud}"></td>
+                <td class="num" th:text="${p.longitud}"></td>
+                <td th:if="${usuario.puedeEditarMaestros()}">
+                    <a class="boton chico suave" th:href="@{/proveedores(editar=${p.id})}">Editar</a>
+                    <a class="boton chico peligro"
+                       th:href="@{/proveedores/eliminar(id=${p.id})}"
+                       onclick="return confirm('Está seguro de eliminar este proveedor?')">Eliminar</a>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(proveedores)}">
+                <td colspan="8" class="vacio">No se encontraron proveedores.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

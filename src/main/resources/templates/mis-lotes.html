@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mis lotes - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span>Productor</span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <h1>Mis lotes</h1>
+
+    <div th:if="${sinVinculo}">
+        <p class="aviso aviso-info">
+            Su cuenta todavía no está vinculada a ningún proveedor. Comuníquese con
+            el administrador de RiTech S.A.S para que la asocie a su finca.
+        </p>
+    </div>
+
+    <div th:unless="${sinVinculo}">
+
+        <p class="entrada">
+            Aquí puede seguir cada entrega que le ha hecho a RiTech S.A.S: a que empresa
+            se vendió, a qué país salió y en qué va su pago.
+        </p>
+
+        <div class="cifras">
+            <div class="cifra">
+                <p class="rotulo">Kilos entregados</p>
+                <div class="dato"
+                     th:text="${#numbers.formatDecimal(kilosTotales, 1, 'POINT', 0, 'COMMA')} + ' kg'"></div>
+            </div>
+            <div class="cifra">
+                <p class="rotulo">Kilos ya exportados</p>
+                <div class="dato"
+                     th:text="${#numbers.formatDecimal(kilosExportados, 1, 'POINT', 0, 'COMMA')} + ' kg'"></div>
+            </div>
+            <div class="cifra alerta">
+                <p class="rotulo">Dinero que le deben</p>
+                <div class="dato"
+                     th:text="'$ ' + ${#numbers.formatDecimal(porPagar, 1, 'POINT', 0, 'COMMA')}"></div>
+            </div>
+            <div class="cifra destacada">
+                <p class="rotulo">Dinero ya recibido</p>
+                <div class="dato"
+                     th:text="'$ ' + ${#numbers.formatDecimal(pagado, 1, 'POINT', 0, 'COMMA')}"></div>
+            </div>
+        </div>
+
+        <h2>Detalle de mis lotes</h2>
+
+        <div class="tabla">
+            <table>
+                <thead>
+                <tr>
+                    <th>Lote</th>
+                    <th>Producto</th>
+                    <th>Finca</th>
+                    <th class="num">Peso (kg)</th>
+                    <th>Cosecha</th>
+                    <th>Estado</th>
+                    <th>Pedido</th>
+                    <th>Comprador</th>
+                    <th>Destino</th>
+                    <th class="num">Precio por kg</th>
+                    <th class="num">Le corresponde</th>
+                    <th>Pago</th>
+                    <th>Origen GPS</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${lotes}">
+                    <td class="codigo" th:text="${l.codigo}"></td>
+                    <td th:text="${l.variedad}"></td>
+                    <td th:text="${l.finca} + ' (' + ${l.lugar} + ')'"></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(l.pesoKg, 1, 'POINT', 2, 'COMMA')}"></td>
+                    <td th:text="${l.fechaCosecha}"></td>
+                    <td>
+                        <span class="estado" th:classappend="'estado-' + ${l.estado}"
+                              th:text="${l.estado}"></span>
+                    </td>
+                    <td class="codigo" th:text="${l.pedido} ?: '-'"></td>
+                    <td th:text="${l.cliente} ?: '-'"></td>
+                    <td th:text="${l.destino} ?: '-'"></td>
+
+                    <td class="num vacio" th:if="${l.precioCompraKg == null}">Por definir</td>
+                    <td class="num" th:unless="${l.precioCompraKg == null}"
+                        th:text="${#numbers.formatDecimal(l.precioCompraKg, 1, 'POINT', 2, 'COMMA')}"></td>
+
+                    <td class="num vacio" th:if="${l.totalCompra == null}">-</td>
+                    <td class="num total" th:unless="${l.totalCompra == null}"
+                        th:text="${#numbers.formatDecimal(l.totalCompra, 1, 'POINT', 2, 'COMMA')}"></td>
+
+                    <td>
+                        <span th:text="${l.estadoPago}"></span>
+                        <span th:if="${l.pagado and l.fechaPago != null}"
+                              th:text="' el ' + ${l.fechaPago}"></span>
+                    </td>
+
+                    <td>
+                        <span class="mono" th:if="${l.tieneCoordenadas()}"
+                              th:text="${l.latitud} + ' , ' + ${l.longitud}"></span>
+                        <span class="estado estado-SOLICITADO"
+                              th:unless="${l.tieneCoordenadas()}">Pendiente</span>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(lotes)}">
+                    <td colspan="13" class="vacio">Todavía no tiene lotes registrados.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="ayuda">
+            Si un lote aparece como <b>Pendiente de pago</b>, el dinero todavía no ha sido
+            girado. Si aparece <b>Por definir</b>, es un lote registrado antes de que el
+            sistema llevara este control.
+        </p>
+
+        <p class="ayuda">
+            Si el origen aparece como <b>Pendiente</b>, ese café no podrá exportarse a la
+            Unión Europea hasta que se registren las coordenadas de su finca.
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pagos a productores - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span th:text="${usuario.rol}"></span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <a class="volver" th:href="@{/menu}">Volver al menú</a>
+
+    <h1>Pagos a productores</h1>
+    <p class="entrada">
+        La otra mitad del negocio: lo que RiTech S.A.S le debe a los caficultores y
+        cacaoteros por el producto que ya entregaron. El precio de compra se registra
+        en pesos cuando se recibe el lote.
+    </p>
+
+    <p th:if="${mensaje}" th:text="${mensaje}" class="aviso aviso-ok"></p>
+    <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+
+    <div class="cifras">
+        <div class="cifra alerta">
+            <p class="rotulo">Pendiente de pago</p>
+            <div class="dato"
+                 th:text="'$ ' + ${#numbers.formatDecimal(totalPendiente, 1, 'POINT', 0, 'COMMA')}"></div>
+        </div>
+        <div class="cifra destacada">
+            <p class="rotulo">Ya pagado</p>
+            <div class="dato"
+                 th:text="'$ ' + ${#numbers.formatDecimal(totalPagado, 1, 'POINT', 0, 'COMMA')}"></div>
+        </div>
+        <div class="cifra" th:if="${lotesSinPrecio > 0}">
+            <p class="rotulo">Lotes sin precio de compra</p>
+            <div class="dato" th:text="${lotesSinPrecio}"></div>
+        </div>
+    </div>
+
+    <p class="ayuda" th:if="${lotesSinPrecio > 0}">
+        Los lotes sin precio de compra se registraron antes de que el sistema llevara
+        este control, y no entran en los totales.
+    </p>
+
+    <h2>Deuda por productor</h2>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Productor</th>
+                <th>Finca</th>
+                <th class="num">Lotes por pagar</th>
+                <th class="num">Kilos por pagar</th>
+                <th class="num">Pendiente (COP)</th>
+                <th class="num">Ya pagado (COP)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="d : ${deudas}">
+                <td th:text="${d.nombre}"></td>
+                <td th:text="${d.finca}"></td>
+                <td class="num" th:text="${d.lotesPendientes}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(d.kilosPendientes, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td class="num total" th:if="${d.debeAlgo}"
+                    th:text="${#numbers.formatDecimal(d.totalPendiente, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td class="num vacio" th:unless="${d.debeAlgo}">Al día</td>
+                <td class="num" th:text="${#numbers.formatDecimal(d.totalPagado, 1, 'POINT', 2, 'COMMA')}"></td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(deudas)}">
+                <td colspan="6" class="vacio">
+                    Todavía no hay lotes con precio de compra registrado.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Lotes pendientes de pago</h2>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Lote</th>
+                <th>Productor</th>
+                <th>Producto</th>
+                <th class="num">Peso (kg)</th>
+                <th class="num">Precio por kg</th>
+                <th class="num">Total a pagar</th>
+                <th>Estado del lote</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="l : ${pendientes}">
+                <td class="codigo" th:text="${l.codigo}"></td>
+                <td th:text="${l.proveedor}"></td>
+                <td th:text="${l.producto} + ' - ' + ${l.variedad}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(l.pesoKg, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(l.precioCompraKg, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td class="num total" th:text="${#numbers.formatDecimal(l.totalCompra, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td>
+                    <span class="estado" th:classappend="'estado-' + ${l.estado}"
+                          th:text="${l.estado}"></span>
+                </td>
+                <td>
+                    <form method="post" th:action="@{/pagos/registrar}">
+                        <input type="hidden" name="idLote" th:value="${l.id}">
+                        <button type="submit" class="chico">Registrar pago</button>
+                    </form>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(pendientes)}">
+                <td colspan="8" class="vacio">No hay pagos pendientes.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Pagos realizados</h2>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Lote</th>
+                <th>Productor</th>
+                <th class="num">Peso (kg)</th>
+                <th class="num">Precio por kg</th>
+                <th class="num">Total pagado</th>
+                <th>Fecha del pago</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="l : ${pagados}">
+                <td class="codigo" th:text="${l.codigo}"></td>
+                <td th:text="${l.proveedor}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(l.pesoKg, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(l.precioCompraKg, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td class="num total" th:text="${#numbers.formatDecimal(l.totalCompra, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td th:text="${l.fechaPago}"></td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(pagados)}">
+                <td colspan="6" class="vacio">Todavía no se ha registrado ningún pago.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

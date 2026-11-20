@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lotes - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span th:text="${usuario.rol}"></span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <a class="volver" th:href="@{/menu}">Volver al menú</a>
+
+    <h1>Lotes</h1>
+    <p class="entrada">
+        Cada lote es una entrega de un productor. Queda amarrado a la finca de donde
+        salió, y con ella a sus coordenadas: eso es lo que después permite exportarlo.
+    </p>
+
+    <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+    <p th:if="${mensaje}" th:text="${mensaje}" class="aviso aviso-ok"></p>
+
+    <!-- Registrar lotes es operacion: solo el auxiliar ve el formulario -->
+    <div class="ficha" th:if="${usuario.puedeOperarLotes()}">
+
+        <h2>Registrar lote</h2>
+
+        <form method="post" action="/lotes">
+
+            <div class="campos">
+
+                <div class="campo">
+                    <label for="idProveedor">Proveedor</label>
+                    <select id="idProveedor" name="idProveedor">
+                        <option value="">Seleccionar</option>
+                        <option th:each="p : ${proveedores}"
+                                th:value="${p.id}"
+                                th:text="${p.nombre}"></option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="idVariedad">Producto y variedad</label>
+                    <select id="idVariedad" name="idVariedad">
+                        <option value="">Seleccionar</option>
+                        <option th:each="v : ${variedades}"
+                                th:value="${v.id}"
+                                th:text="${v.texto}"></option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="peso">Peso en kilogramos</label>
+                    <input type="text" id="peso" name="peso" placeholder="1200">
+                </div>
+
+                <div class="campo">
+                    <label for="fechaCosecha">Fecha de cosecha</label>
+                    <input type="text" id="fechaCosecha" name="fechaCosecha"
+                           placeholder="aaaa-mm-dd">
+                </div>
+
+                <div class="campo ancho">
+                    <label for="precioCompra">Precio de compra por kilo, en pesos</label>
+                    <input type="text" id="precioCompra" name="precioCompra"
+                           placeholder="12000">
+                    <p class="ayuda">
+                        Lo que RiTech le paga al productor por este lote. No es el precio
+                        de venta al comprador europeo: ese se fija después, en el pedido,
+                        y va en dolares o euros.
+                    </p>
+                </div>
+
+            </div>
+
+            <button type="submit">Guardar lote</button>
+
+        </form>
+
+    </div>
+
+    <p th:unless="${usuario.puedeOperarLotes()}" class="aviso">
+        Esta pantalla es de consulta. El registro de lotes lo hace el auxiliar de exportaciones.
+    </p>
+
+    <h2>Lotes registrados</h2>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Lote</th>
+                <th>Producto</th>
+                <th>Variedad</th>
+                <th class="num">Peso (kg)</th>
+                <th>Cosecha</th>
+                <th>Proveedor</th>
+                <th>Finca</th>
+                <th>Estado</th>
+                <th class="num">Compra por kg</th>
+                <th class="num">Total al productor</th>
+                <th>Pago</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="l : ${lotes}">
+                <td class="codigo" th:text="${l.codigo}"></td>
+                <td th:text="${l.producto}"></td>
+                <td th:text="${l.variedad}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(l.pesoKg, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td th:text="${l.fechaCosecha}"></td>
+                <td th:text="${l.proveedor}"></td>
+                <td th:text="${l.finca}"></td>
+                <td>
+                    <span class="estado" th:classappend="'estado-' + ${l.estado}"
+                          th:text="${l.estado}"></span>
+                </td>
+
+                <td class="num vacio" th:if="${l.precioCompraKg == null}">Sin definir</td>
+                <td class="num" th:unless="${l.precioCompraKg == null}"
+                    th:text="${#numbers.formatDecimal(l.precioCompraKg, 1, 'POINT', 2, 'COMMA')}"></td>
+
+                <td class="num vacio" th:if="${l.totalCompra == null}">-</td>
+                <td class="num total" th:unless="${l.totalCompra == null}"
+                    th:text="${#numbers.formatDecimal(l.totalCompra, 1, 'POINT', 2, 'COMMA')}"></td>
+
+                <td class="vacio" th:if="${l.precioCompraKg == null}">-</td>
+                <td th:unless="${l.precioCompraKg == null}"
+                    th:text="${l.pagado} ? 'Pagado el ' + ${l.fechaPago} : 'Pendiente'"></td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(lotes)}">
+                <td colspan="11" class="vacio">
+                    Todavía no hay lotes registrados.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

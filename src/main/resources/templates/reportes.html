@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reportes - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span th:text="${usuario.rol}"></span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <a class="volver" th:href="@{/menu}">Volver al menú</a>
+
+    <h1>Reportes de gestión</h1>
+    <p class="entrada">
+        Generado el <span th:text="${hoy}"></span> con los datos que hay en el sistema
+        en este momento.
+    </p>
+
+    <h2>Resumen general</h2>
+
+    <div class="cifras">
+        <div class="cifra">
+            <p class="rotulo">Proveedores</p>
+            <div class="dato" th:text="${resumen.total_proveedores}"></div>
+        </div>
+        <div class="cifra">
+            <p class="rotulo">Clientes</p>
+            <div class="dato" th:text="${resumen.total_clientes}"></div>
+        </div>
+        <div class="cifra">
+            <p class="rotulo">Lotes registrados</p>
+            <div class="dato" th:text="${resumen.total_lotes}"></div>
+        </div>
+        <div class="cifra">
+            <p class="rotulo">Pedidos creados</p>
+            <div class="dato" th:text="${resumen.total_pedidos}"></div>
+        </div>
+    </div>
+
+    <div class="cifras">
+        <div class="cifra">
+            <p class="rotulo">Kilos disponibles</p>
+            <div class="dato" th:text="${#numbers.formatDecimal(resumen.kg_disponible, 1, 'POINT', 0, 'COMMA')}"></div>
+        </div>
+        <div class="cifra">
+            <p class="rotulo">Kilos reservados</p>
+            <div class="dato" th:text="${#numbers.formatDecimal(resumen.kg_reservado, 1, 'POINT', 0, 'COMMA')}"></div>
+        </div>
+        <div class="cifra destacada">
+            <p class="rotulo">Kilos exportados</p>
+            <div class="dato" th:text="${#numbers.formatDecimal(resumen.kg_despachado, 1, 'POINT', 0, 'COMMA')}"></div>
+        </div>
+        <div class="cifra destacada">
+            <p class="rotulo">Valor exportado (COP)</p>
+            <div class="dato" th:text="'$ ' + ${#numbers.formatDecimal(resumen.valor_cop, 1, 'POINT', 0, 'COMMA')}"></div>
+        </div>
+    </div>
+
+    <h2>Exportaciones por país de destino</h2>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>País</th>
+                <th class="num">Pedidos</th>
+                <th class="num">Kilos</th>
+                <th class="num">Valor (COP)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="f : ${porPais}">
+                <td th:text="${f.pais}"></td>
+                <td class="num" th:text="${f.pedidos}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(f.kilos, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td class="num total" th:text="'$ ' + ${#numbers.formatDecimal(f.valor_cop, 1, 'POINT', 2, 'COMMA')}"></td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(porPais)}">
+                <td colspan="4" class="vacio">Todavía no hay exportaciones registradas.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Compras por proveedor</h2>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Proveedor</th>
+                <th>Finca</th>
+                <th class="num">Lotes</th>
+                <th class="num">Kilos entregados</th>
+                <th class="num">Kilos exportados</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="f : ${porProveedor}">
+                <td th:text="${f.proveedor}"></td>
+                <td th:text="${f.finca}"></td>
+                <td class="num" th:text="${f.lotes}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(f.kilos, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(f.kilos_exportados, 1, 'POINT', 2, 'COMMA')}"></td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(porProveedor)}">
+                <td colspan="5" class="vacio">Sin datos.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Inventario por producto</h2>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Variedad</th>
+                <th class="num">Lotes</th>
+                <th class="num">Kilos</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="f : ${porProducto}">
+                <td th:text="${f.producto}"></td>
+                <td th:text="${f.variedad}"></td>
+                <td class="num" th:text="${f.lotes}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(f.kilos, 1, 'POINT', 2, 'COMMA')}"></td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(porProducto)}">
+                <td colspan="4" class="vacio">Sin datos.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Cumplimiento del Reglamento (UE) 2023/1115</h2>
+
+    <p class="entrada">
+        Estado de georreferenciación de las parcelas de origen. Los kilos de las fincas
+        en estado PENDIENTE no se pueden exportar a la Unión Europea mientras no se
+        registren sus coordenadas.
+    </p>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Proveedor</th>
+                <th>Finca</th>
+                <th>Municipio</th>
+                <th class="num">Latitud</th>
+                <th class="num">Longitud</th>
+                <th class="num">Kilos en riesgo</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="f : ${eudr}">
+                <td th:text="${f.proveedor}"></td>
+                <td th:text="${f.finca}"></td>
+                <td th:text="${f.lugar}"></td>
+                <td class="num" th:text="${f.latitud} ?: '-'"></td>
+                <td class="num" th:text="${f.longitud} ?: '-'"></td>
+                <td class="num total" th:text="${#numbers.formatDecimal(f.kilos, 1, 'POINT', 2, 'COMMA')}"></td>
+                <td>
+                    <span class="estado"
+                          th:classappend="${f.estado} == 'PENDIENTE' ? 'estado-RECHAZADO' : 'estado-DISPONIBLE'"
+                          th:text="${f.estado}"></span>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(eudr)}">
+                <td colspan="7" class="vacio">Sin datos.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ingresar - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<div class="portada">
+    <div class="portada-caja">
+
+        <p class="portada-marca">RiTech <span>S.A.S</span></p>
+        <p class="portada-sub">
+            Exportación de café y cacao de Nariño hacia la Unión Europea.
+        </p>
+
+        <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+
+        <div class="ficha">
+            <form method="post" action="/login">
+
+                <div class="campos">
+                    <div class="campo ancho">
+                        <label for="correo">Correo</label>
+                        <input type="text" id="correo" name="correo"
+                               autocomplete="username" autofocus>
+                    </div>
+
+                    <div class="campo ancho">
+                        <label for="clave">Contraseña</label>
+                        <input type="password" id="clave" name="clave"
+                               autocomplete="current-password">
+                    </div>
+                </div>
+
+                <button type="submit">Ingresar</button>
+
+            </form>
+        </div>
+
+        <p class="pie">
+            Trazabilidad conforme al Reglamento (UE) 2023/1115
+        </p>
+
+    </div>
+</div>
+
+</body>
+</html>

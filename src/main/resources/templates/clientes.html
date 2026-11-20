@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Clientes - RiTech S.A.S</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/menu}">RiTech <span>S.A.S</span></a>
+        <div class="sesion">
+            <span><b th:text="${usuario.nombre}"></b></span>
+            <span th:text="${usuario.rol}"></span>
+            <a th:href="@{/salir}">Cerrar sesión</a>
+        </div>
+    </div>
+</header>
+
+<div class="contenedor">
+
+    <a class="volver" th:href="@{/menu}">Volver al menú</a>
+
+    <h1>Clientes de la Unión Europea</h1>
+    <p class="entrada">
+        Empresas importadoras. La moneda habitual de cada una se usa como valor por
+        defecto cuando ellas mismas solicitan lotes desde su portal.
+    </p>
+
+    <p th:if="${mensaje}" th:text="${mensaje}" class="aviso aviso-ok"></p>
+    <p th:if="${error}" th:text="${error}" class="aviso aviso-error"></p>
+
+    <!-- Formulario: sirve para crear y para editar.
+         Solo lo ve quien puede editar datos maestros -->
+    <div class="ficha" th:if="${usuario.puedeEditarMaestros()}">
+
+        <h2 th:text="${cliente != null} ? 'Editar cliente' : 'Registrar cliente nuevo'"></h2>
+
+        <form method="post"
+              th:action="${cliente != null} ? @{/clientes/actualizar} : @{/clientes/guardar}">
+
+            <input type="hidden" name="id" th:if="${cliente != null}" th:value="${cliente.id}">
+
+            <div class="campos">
+
+                <div class="campo ancho">
+                    <label for="nombreEmpresa">Nombre de la empresa</label>
+                    <input type="text" id="nombreEmpresa" name="nombreEmpresa"
+                           th:value="${cliente != null} ? ${cliente.nombreEmpresa} : ''">
+                </div>
+
+                <div class="campo">
+                    <label for="idPais">País de destino</label>
+                    <select id="idPais" name="idPais">
+                        <option value="0">Seleccione</option>
+                        <option th:each="p : ${paises}"
+                                th:value="${p.id}"
+                                th:text="${p.nombre}"
+                                th:selected="${cliente != null and cliente.idPais == p.id}"></option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="ciudad">Ciudad</label>
+                    <input type="text" id="ciudad" name="ciudad"
+                           th:value="${cliente != null} ? ${cliente.ciudad} : ''">
+                </div>
+
+                <div class="campo">
+                    <label for="personaContacto">Persona de contacto</label>
+                    <input type="text" id="personaContacto" name="personaContacto"
+                           th:value="${cliente != null} ? ${cliente.personaContacto} : ''">
+                </div>
+
+                <div class="campo">
+                    <label for="correoCliente">Correo</label>
+                    <input type="text" id="correoCliente" name="correo"
+                           th:value="${cliente != null} ? ${cliente.correo} : ''">
+                </div>
+
+                <div class="campo">
+                    <label for="idMoneda">Moneda habitual</label>
+                    <select id="idMoneda" name="idMoneda">
+                        <option value="0">Sin definir</option>
+                        <option th:each="m : ${monedas}"
+                                th:value="${m.id}"
+                                th:text="${m.texto}"
+                                th:selected="${cliente != null and cliente.idMoneda != null and cliente.idMoneda == m.id}"></option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="acciones">
+                <button type="submit" th:text="${cliente != null} ? 'Actualizar' : 'Guardar'"></button>
+                <a th:if="${cliente != null}" class="boton chico suave" th:href="@{/clientes}">Cancelar</a>
+            </div>
+
+        </form>
+
+    </div>
+
+    <p th:unless="${usuario.puedeEditarMaestros()}" class="aviso">
+        Esta pantalla es de consulta. El registro de clientes lo hace el administrador.
+    </p>
+
+    <h2>Clientes registrados</h2>
+
+    <div class="ficha">
+        <form method="get" th:action="@{/clientes}" class="acciones">
+            <input type="text" name="filtro" placeholder="Empresa, país o ciudad"
+                   th:value="${filtro}" style="max-width: 280px">
+            <button type="submit" class="suave">Buscar</button>
+            <a class="boton chico suave" th:href="@{/clientes}">Limpiar</a>
+        </form>
+    </div>
+
+    <div class="tabla">
+        <table>
+            <thead>
+            <tr>
+                <th>Empresa</th>
+                <th>País</th>
+                <th>Ciudad</th>
+                <th>Contacto</th>
+                <th>Correo</th>
+                <th>Moneda</th>
+                <th th:if="${usuario.puedeEditarMaestros()}">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${clientes}">
+                <td th:text="${c.nombreEmpresa}"></td>
+                <td th:text="${c.pais}"></td>
+                <td th:text="${c.ciudad}"></td>
+                <td th:text="${c.personaContacto}"></td>
+                <td th:text="${c.correo}"></td>
+                <td class="mono" th:text="${c.moneda} ?: '-'"></td>
+                <td th:if="${usuario.puedeEditarMaestros()}">
+                    <a class="boton chico suave" th:href="@{/clientes(editar=${c.id})}">Editar</a>
+
+                    <form method="post" th:action="@{/clientes/eliminar}">
+                        <input type="hidden" name="id" th:value="${c.id}">
+                        <button type="submit" class="chico peligro">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(clientes)}">
+                <td colspan="7" class="vacio">No hay clientes que coincidan con la busqueda.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
