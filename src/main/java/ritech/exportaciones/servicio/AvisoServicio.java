@@ -33,8 +33,8 @@ public class AvisoServicio {
     private CorreoServicio correoServicio;
 
     private static final String FIRMA =
-        "\n\n--\nRiTech S.A.S\nExportacion de cafe y cacao de Narino hacia la Union Europea\n"
-      + "Este es un aviso automatico del sistema, no responda a este correo.";
+        "\n\n--\nRiTech S.A.S\nExportación de café y cacao de Nariño hacia la Unión Europea\n"
+      + "Este es un aviso automático del sistema, no responda a este correo.";
 
     // ----------------------------------------------------------
     // 1. El cliente pide lotes  ->  se le avisa al auxiliar
@@ -49,7 +49,7 @@ public class AvisoServicio {
             "La empresa " + empresa + " acaba de solicitar " + cuantosLotes
           + (cuantosLotes == 1 ? " lote." : " lotes.") + "\n\n"
           + "Solicitud: " + numero + "\n\n"
-          + "Entre al sistema, revise los lotes y mandele la cotizacion."
+          + "Entre al sistema, revise los lotes y mándele la cotización."
           + FIRMA;
 
         for (String auxiliar : avisoDAO.correosDeAuxiliares()) {
@@ -68,7 +68,7 @@ public class AvisoServicio {
             return;
         }
 
-        String asunto = "Cotizacion " + pedido.getNumero() + " - RiTech S.A.S";
+        String asunto = "Cotización " + pedido.getNumero() + " - RiTech S.A.S";
 
         String cuerpo =
             "Su solicitud " + pedido.getNumero() + " ya tiene precio.\n\n"
@@ -76,7 +76,7 @@ public class AvisoServicio {
           + "Destino: " + pedido.getPaisDestino() + "\n"
           + "Tasa de cambio aplicada: " + plata(pedido.getTasaCambio())
           + " pesos por " + pedido.getMoneda() + "\n\n"
-          + "Entre al sistema para aceptar o rechazar el precio. Si no esta de "
+          + "Entre al sistema para aceptar o rechazar el precio. Si no está de "
           + "acuerdo puede indicar el motivo y lo revisamos."
           + FIRMA;
 
@@ -88,10 +88,10 @@ public class AvisoServicio {
     // ----------------------------------------------------------
     public void clienteAcepto(Pedido pedido) {
 
-        String asunto = "Aceptada la cotizacion " + pedido.getNumero();
+        String asunto = "Aceptada la cotización " + pedido.getNumero();
 
         String cuerpo =
-            pedido.getCliente() + " acepto el precio del pedido "
+            pedido.getCliente() + " aceptó el precio del pedido "
           + pedido.getNumero() + ".\n\n"
           + "Total: " + plata(pedido.getTotal()) + " " + pedido.getMoneda() + "\n\n"
           + "El pedido queda listo para que la gerencia autorice el despacho."
@@ -102,12 +102,12 @@ public class AvisoServicio {
 
     public void clienteRechazo(Pedido pedido, String motivo) {
 
-        String asunto = "Rechazada la cotizacion " + pedido.getNumero();
+        String asunto = "Rechazada la cotización " + pedido.getNumero();
 
         String cuerpo =
-            pedido.getCliente() + " no acepto el precio del pedido "
+            pedido.getCliente() + " no aceptó el precio del pedido "
           + pedido.getNumero() + ".\n\n"
-          + "Motivo que escribio el cliente:\n" + motivo + "\n\n"
+          + "Motivo que escribió el cliente:\n" + motivo + "\n\n"
           + "Los lotes volvieron al inventario disponible."
           + FIRMA;
 
@@ -128,8 +128,8 @@ public class AvisoServicio {
         String asunto = "Pago del lote " + lote.getCodigo() + " - RiTech S.A.S";
 
         String cuerpo =
-            "Senor(a) " + lote.getProveedor() + ",\n\n"
-          + "RiTech S.A.S autorizo el pago de su lote " + lote.getCodigo() + ".\n\n"
+            "Señor(a) " + lote.getProveedor() + ",\n\n"
+          + "RiTech S.A.S autorizó el pago de su lote " + lote.getCodigo() + ".\n\n"
           + "Finca: " + lote.getFinca() + "\n"
           + "Peso: " + plata(lote.getPesoKg()) + " kg\n"
           + (lote.getPrecioCompraKg() == null ? ""
